@@ -1,8 +1,14 @@
 package env
 
 import (
+	"fmt"
+	"go-debug/output"
 	"os"
+	"regexp"
+	"strings"
 )
+
+var allOptions = []string{"CLOUDFLARE_ACCOUNT_EMAIL", "CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_API_KEY", "DB_NAME", "DB_ID", "PAGES_NAME", "PAGES_ID", "WORKERS_NAME", "WORKERS_ID"}
 
 // Main CF API Details
 var (
@@ -34,6 +40,9 @@ var UseEnv bool
 
 func SetupEnv() {
 
+	// Temp
+	UseEnv = true
+
 	if UseEnv {
 		CLOUDFLARE_ACCOUNT_EMAIL = GetEnv("CLOUDFLARE_ACCOUNT_EMAIL")
 		CLOUDFLARE_ACCOUNT_ID = GetEnv("CLOUDFLARE_ACCOUNT_ID")
@@ -58,18 +67,63 @@ func GetEnv(key string) string {
 
 func SetupEnvConfig() {
 
-	configFile err := os.Stat("env.conf")
+	// Check if the config file exists
+	_, err := os.Stat("config.conf")
 	if err != nil {
 		if os.IsNotExist(err) {
-			createConfig()
+			createConfigFile()
 		}
 	}
 
-}
+	// Read the entire config file into memory
+	content, err := os.ReadFile("config.conf")
+	if err != nil {
+		output.Error("Could not read config file")
+		output.Exit("Exiting...")
+		return
+	}
 
-createConfig() {
-	// Create a new file
-	f, err := os.Create("env.conf")
-	
+	// Convert the content to a string for easier processing
+	contentStr := string(content)
+
+	// Iterate over all options and extract their values
+	for _, key := range allOptions {
+		// Regular expression to match both quoted and unquoted values
+		re := regexp.MustCompile(fmt.Sprintf(`(?m)^%s\s*=\s*(?:"([^"]*)"|([^#\n]+))`, key))
+		matches := re.FindStringSubmatch(contentStr)
+
+		if matches != nil {
+			var value string
+			if matches[1] != "" {
+				// Matched a quoted value
+				value = matches[1]
+			} else if matches[2] != "" {
+				// Matched an unquoted value
+				value = strings.TrimSpace(matches[2])
+			}
+
+			// Assign the value to the corresponding variable
+			switch key {
+			case "CLOUDFLARE_ACCOUNT_EMAIL":
+				CLOUDFLARE_ACCOUNT_EMAIL = value
+			case "CLOUDFLARE_ACCOUNT_ID":
+				CLOUDFLARE_ACCOUNT_ID = value
+			case "CLOUDFLARE_API_KEY":
+				CLOUDFLARE_API_KEY = value
+			case "DB_NAME":
+				DB_NAME = value
+			case "DB_ID":
+				DB_ID = value
+			case "PAGES_NAME":
+				PAGES_NAME = value
+			case "PAGES_ID":
+				PAGES_ID = value
+			case "WORKERS_NAME":
+				WORKERS_NAME = value
+			case "WORKERS_ID":
+				WORKERS_ID = value
+			}
+		}
+	}
 
 }

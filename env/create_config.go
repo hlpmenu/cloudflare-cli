@@ -14,7 +14,7 @@ import (
 var configContent []byte // or string if you prefer
 
 // Example function to use the embedded content
-func UseConfig() {
+func createConfigFile() {
 	// Use configContent directly as []byte or string
 	// For example, writing it to a file:
 	err := os.WriteFile("config.conf", configContent, fs.ModePerm)
