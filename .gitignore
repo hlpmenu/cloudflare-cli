@@ -16,11 +16,18 @@ env.ps1
 env.cmd
 env.sh~
 
+# Install
+install.sh
+install.bat
+install.ps1
+install.cmd
+install.sh~
+install.fish
+install.zsh
+
 # Markdown notes
 *.md
 *.markdown
-
-
 
 config.conf
 config.toml
