@@ -1,4 +1,4 @@
-package main
+package env
 
 import (
 	"os"
@@ -70,5 +70,6 @@ func SetupEnvConfig() {
 createConfig() {
 	// Create a new file
 	f, err := os.Create("env.conf")
+	
 
 }
