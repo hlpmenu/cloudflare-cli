@@ -1,0 +1,84 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.run
+cf-cli
+cli
+env.fish
+env.sh
+env.zsh
+env.bat
+env.ps1
+env.cmd
+env.sh~
+
+# Markdown notes
+*.md
+*.markdown
+
+
+
+config.conf
+config.toml
+config.yaml
+config
+*.conf
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
+.glide/
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+# JetBrains IDEs
+.idea/
+
+# VSCode
+.vscode/
+
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.slo
+*.lo
+*.la
+*.al
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Folders
+_obj
+_test
+
+# Architecture specific extensions/prefixes
+*.[568vq]
+[568vq].out
+
+# Go build cache
+*.cgo1.go
+*.cgo2.c
+_cgo_defun.c
+_cgo_gotypes.go
+_cgo_export.*
+
+# Go Module files
+go.sum
+go.mod
+
+# Certificate files
+*.cert
+*.key
+
+# Log files
+*.log
+
+# Output binary
+/bin/
