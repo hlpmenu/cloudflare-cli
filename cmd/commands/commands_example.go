@@ -4,8 +4,10 @@ import (
 	"fmt"
 )
 
+var Cmds = NewCommands()
+
 func ExampleCommand() *Command {
-	printHelloWorld := func() {
+	printHelloWorld := func(map[string]string) {
 		fmt.Println("Hello, World!")
 	}
 
