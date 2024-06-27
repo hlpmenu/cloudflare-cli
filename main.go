@@ -1,14 +1,11 @@
 package main
 
-var call *request
+import "go-debug/cmd"
 
 func main() {
-	call = &request{}
 
-	//Flags()
+	cmd.Entry()
 
-	SendRequest()
+	//SendRequest()
 
 }
-
-var hdr map[string][]string

@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"go-debug/env"
 	"io"
 	"log"
 	"net/http"
@@ -34,8 +35,8 @@ func SendRequest() {
 	if err != nil {
 		panic(err)
 	}
-	req.Header.Set("X-Auth-Key", CLOUDFLARE_API_KEY)
-	req.Header.Set("X-Auth-Email", CLOUDFLARE_ACCOUNT_EMAIL)
+	req.Header.Set("X-Auth-Key", env.CLOUDFLARE_API_KEY)
+	req.Header.Set("X-Auth-Email", env.CLOUDFLARE_ACCOUNT_EMAIL)
 	req.Header.Set("Content-Type", "application/json")
 
 	log.Printf("Sending request to %s\n", url)
