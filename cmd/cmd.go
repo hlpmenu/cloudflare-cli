@@ -44,7 +44,7 @@ func helloworld(m map[string]string) {
 	log.Printf("Running helloworld command with flags: %v\n", m)
 	var txt string
 
-	if m["o"] == "hello" {
+	if m["-o"] == "hello" {
 		txt = "Hello, World!"
 	} else {
 		txt = "Goodbye, World!"

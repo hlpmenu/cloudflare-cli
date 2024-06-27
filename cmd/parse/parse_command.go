@@ -4,6 +4,7 @@ import (
 	"go-debug/cmd/commands"
 	"go-debug/global"
 	"go-debug/output"
+	"go-debug/output/timer"
 	"log"
 	"os"
 	"strings"
@@ -48,7 +49,7 @@ func (args *Args) CutLast() {
 }
 
 func ParseArgs() {
-
+	timer.Time("ParseArgs")()
 	C := &Command{}
 	var (
 		args = C.Args
@@ -73,16 +74,7 @@ func ParseArgs() {
 		log.Print("command: ", command)
 		cmd = ac[command]
 
-		// Log args before cutting the first element
-		output.Logf("args before slice %v\n", args)
-		output.Logf("C.Args before slice %v\n", C.Args)
-
-		C.CutLast() // Remove the command from the arguments
 		args.CutLast()
-
-		// Log args after cutting the first element
-		output.Logf("args after slice %v\n", args)
-		output.Logf("C.Args after slice %v\n", C.Args)
 
 		log.Print("args: ", args)
 		for _, arg := range args {
@@ -115,7 +107,6 @@ func ParseArgs() {
 			}
 		}
 
-		log.Printf("Command: %v", cmd.Run)
 		C.CMD = cmd
 		executeCommand(C)
 
@@ -139,19 +130,12 @@ func executeCommand(C *Command) {
 		return
 	}
 
-	// Log C.Flags to see if the flags ever added
-	for _, f := range C.Flags {
-		name := f.Name
-		value := f.Value
-		output.Logf("Flag: %s, Value: %s\n", name, value)
-	}
-
 	if C.CMD.Run == nil {
 		output.Error("Internal error: Command has no run function")
 		return
 	}
 
-	//C.CMD.Run(flags)
+	C.CMD.Run(flags)
 
 }
 
