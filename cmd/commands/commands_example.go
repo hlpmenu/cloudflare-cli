@@ -16,6 +16,7 @@ func ExampleCommand() *Command {
 		Description: "Prints 'Hello, World!'",
 		Run:         printHelloWorld,
 	}
+	Cmds.Add(helloCommand)
 
 	return &helloCommand
 

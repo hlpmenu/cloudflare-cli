@@ -4,7 +4,9 @@ import (
 	"go-debug/cmd/commands"
 	"go-debug/global"
 	"go-debug/output"
+	"log"
 	"os"
+	"strings"
 )
 
 // Example commands
@@ -29,12 +31,20 @@ type SubCommand struct {
 }
 
 func (c Command) CutLast() {
-	c.Args = c.Args[:1]
+	if len(c.Args) > 0 {
+		c.Args = c.Args[1:]
+	}
+}
+func CutLast(args []string) {
+	if len(args) > 0 {
+		args = args[1:]
+	}
+
 }
 
 func ParseArgs() {
 
-	C := Command{}
+	C := &Command{}
 	var (
 		args = C.Args
 		cmd  = C.CMD
@@ -55,10 +65,20 @@ func ParseArgs() {
 	// Check if the command is available
 	if _, exists := ac[command]; exists {
 		output.Infof("Executing command: %s\n", command)
-
+		log.Print("command: ", command)
 		cmd = ac[command]
+
+		// Log args before cutting the first element
+		output.Logf("args before slice %v\n", args)
+		output.Logf("C.Args before slice %v\n", C.Args)
+
 		C.CutLast() // Remove the command from the arguments
 
+		// Log args after cutting the first element
+		output.Logf("args after slice %v\n", args)
+		output.Logf("C.Args after slice %v\n", C.Args)
+
+		log.Print("args: ", args)
 		for _, arg := range args {
 			if arg == "-h" || arg == "--help" {
 				output.Info(cmd.Usage())
@@ -89,6 +109,10 @@ func ParseArgs() {
 			}
 		}
 
+		log.Printf("Command: %v", cmd.Run)
+		C.CMD = cmd
+		executeCommand(C)
+
 	} else {
 		output.Errorf("Unknown command: %s\n", command)
 		// Here you might want to print available commands or usage information
@@ -97,12 +121,31 @@ func ParseArgs() {
 }
 
 func regexIsFlag(s string) bool {
-	return len(s) > 1 && s[0] == '-' && (s[1] == '-' || s[1] != '-')
+	//return len(s) > 1 && s[0] == '-' && (s[1] == '-' || s[1] != '-')
+	return strings.HasPrefix(s, "-")
 }
 
-func executeCommand(C Command) {
+func executeCommand(C *Command) {
+
 	flags := createFlagMap(C.Flags)
-	C.CMD.Run(flags)
+	if flags == nil { // Added to show you that the flags map is NOT nil.
+		output.Error("No flags provided")
+		return
+	}
+
+	// Log C.Flags to see if the flags ever added
+	for _, f := range C.Flags {
+		name := f.Name
+		value := f.Value
+		output.Logf("Flag: %s, Value: %s\n", name, value)
+	}
+
+	if C.CMD.Run == nil {
+		output.Error("Internal error: Command has no run function")
+		return
+	}
+
+	//C.CMD.Run(flags)
 
 }
 
