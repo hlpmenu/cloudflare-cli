@@ -32,8 +32,9 @@ var printhelloworld = &commands.Command{
 	Description: "Prints 'Hello, World!'",
 	Flags: []commands.Flag{
 		commands.Flag{
-			Name:  "o",
-			Value: "hello",
+			Name:     "-o",
+			Value:    "hello",
+			HasValue: true,
 		},
 	},
 	Run: helloworld,

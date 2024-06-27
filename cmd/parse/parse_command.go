@@ -18,7 +18,7 @@ type Command struct {
 	Name       string
 	Flags      []Flag
 	SubCommand SubCommand
-	Args       []string
+	Args       Args
 	CMD        commands.Command
 }
 type Flag struct {
@@ -35,11 +35,16 @@ func (c Command) CutLast() {
 		c.Args = c.Args[1:]
 	}
 }
-func CutLast(args []string) {
-	if len(args) > 0 {
-		args = args[1:]
-	}
 
+type Args []string
+
+func (args *Args) CutLast() {
+	var new Args = make(Args, len(*args)) // Initialize 'new' with the same length as 'args'
+	copy(new, *args)                      // Copy the contents of 'args' into 'new'
+	if len(*args) > 0 {
+		new = new[1:] // Modify 'new' by removing the first element
+		*args = new   // Update 'args' with the value of 'new'
+	}
 }
 
 func ParseArgs() {
@@ -73,6 +78,7 @@ func ParseArgs() {
 		output.Logf("C.Args before slice %v\n", C.Args)
 
 		C.CutLast() // Remove the command from the arguments
+		args.CutLast()
 
 		// Log args after cutting the first element
 		output.Logf("args after slice %v\n", args)
@@ -93,13 +99,13 @@ func ParseArgs() {
 					return
 				}
 				if f.HasValue {
-					C.CutLast()
+					args.CutLast()
 					if len(args) < 1 || regexIsFlag(args[0]) {
 						output.Error("No value provided for flag")
 						return
 					} else {
 						C.Flags = append(C.Flags, Flag{Name: f.Name, Value: args[0]})
-						C.CutLast()
+						args.CutLast()
 					}
 				}
 
