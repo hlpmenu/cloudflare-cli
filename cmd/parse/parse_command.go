@@ -6,5 +6,5 @@ package parse
 // CMD: cf-cli worker create
 
 func ParseCommands() {
-	// Parse commands from os.Args or the equivalent syscall method
+
 }
