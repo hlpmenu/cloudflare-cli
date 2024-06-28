@@ -15,6 +15,7 @@ var (
 	CLOUDFLARE_ACCOUNT_EMAIL string // Your accounts email
 	CLOUDFLARE_ACCOUNT_ID    string // Your accounts ID
 	CLOUDFLARE_API_KEY       string // Your accounts API KEY
+	CLOUDFLARE_API_TOKEN     string // Your accounts API TOKEN
 )
 
 // For D1
@@ -47,12 +48,14 @@ func SetupEnv() {
 		CLOUDFLARE_ACCOUNT_EMAIL = GetEnv("CLOUDFLARE_ACCOUNT_EMAIL")
 		CLOUDFLARE_ACCOUNT_ID = GetEnv("CLOUDFLARE_ACCOUNT_ID")
 		CLOUDFLARE_API_KEY = GetEnv("CLOUDFLARE_API_KEY")
+		CLOUDFLARE_API_TOKEN = GetEnv("CLOUDFLARE_API_TOKEN")
 		DB_NAME = GetEnv("DB_NAME")
 		DB_ID = GetEnv("DB_ID")
 		PAGES_NAME = GetEnv("PAGES_NAME")
 		PAGES_ID = GetEnv("PAGES_ID")
 		WORKERS_NAME = GetEnv("WORKERS_NAME")
 		WORKERS_ID = GetEnv("WORKERS_ID")
+
 	} else {
 		SetupEnvConfig()
 	}
