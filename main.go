@@ -6,6 +6,4 @@ func main() {
 
 	cmd.Entry()
 
-	//SendRequest()
-
 }

@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"go-debug/cmd/commands"
+	"go-debug/cmd/interactive"
 	"go-debug/cmd/parse"
 	"go-debug/output"
 	"log"
@@ -22,6 +23,7 @@ func Entry() {
 	example := commands.ExampleCommand()
 	Cmds.Add(*example)
 	Cmds.Add(*printhelloworld)
+	Cmds.Add(*interactive.StartInteractive)
 
 	parse.ParseArgs()
 
