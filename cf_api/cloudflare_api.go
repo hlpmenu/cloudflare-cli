@@ -148,6 +148,7 @@ func logresponse(res *http.Response) {
 	if err != nil {
 		output.Errorf("Error: %s", err)
 	}
+	defer res.Body.Close()
 	bodyS := string(body)
 	if len(bodyS) > 1 {
 		output.Errorf("Error, Suspicious response: %s", bodyS)
@@ -172,7 +173,7 @@ func toJson(m map[string]string) []byte {
 }
 
 // Exist in map
-func exists(m map[string]string, key string) (bool, string) {
+func flagExists(m map[string]string, key string) (bool, string) {
 	_, ok := m[key]
 	return ok, m[key]
 }

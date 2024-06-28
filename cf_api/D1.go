@@ -3,6 +3,8 @@ package cfapi
 import (
 	"go-debug/env"
 	"go-debug/output"
+	"io"
+	"net/http"
 )
 
 type D1 struct {
@@ -57,7 +59,7 @@ func (d *D1) List(m flagsMap) {
 func (d *D1) Create(m flagsMap) {
 
 	// Values
-	exists, name := exists(m, "-name")
+	exists, name := flagExists(m, "-name")
 	if !exists {
 		output.Error("No database name provided")
 		output.Exit("Please provide a database name using: cf-cli d1 create -name <name>")
@@ -80,7 +82,7 @@ func (d *D1) Create(m flagsMap) {
 
 func (d *D1) Delete(m flagsMap) {
 	// Values
-	exists, id := exists(m, "-id")
+	exists, id := flagExists(m, "-id")
 	if !exists || len(id) < 1 {
 		output.Error("No database id provided")
 		output.Exit("Please provide a database id using: cf-cli d1 create -id <db_id>")
@@ -100,7 +102,7 @@ func (d *D1) Delete(m flagsMap) {
 func (d *D1) GET(m flagsMap) {
 
 	// Values
-	exists, id := exists(m, "-id")
+	exists, id := flagExists(m, "-id")
 	if !exists || len(id) < 1 {
 		output.Error("No database id provided")
 		output.Exit("Please provide a database id using: cf-cli d1 create -id <db_id>")
@@ -119,9 +121,42 @@ func (d *D1) GET(m flagsMap) {
 
 func (d *D1) Query(m flagsMap) {
 	// Not implemented in the CLI
+	output.Errorf("Error: Query not implemented in the CLI. Use cf-api exec -db 'id' -sql 'SELECT * ...' to run raw queries")
 }
 
 func (d *D1) Raw(m flagsMap) {
+	// Values
+	exists, id := flagExists(m, "-db")
+	if !exists || len(id) < 1 {
+		output.Error("No database id provided")
+		output.Exit("Please provide a database id using: cf-cli d1 create -db <db_id>")
+	}
+
+	exists, sql := flagExists(m, "-sql")
+	if !exists || len(sql) < 1 {
+		output.Error("No SQL query provided")
+		output.Exit("Please provide a SQL query using: cf-cli d1 create -sql 'SELECT * FROM ...'")
+	}
+
+	// for using files, use -file flag
+	// NOT IMPLEMENTED
+	_, file := flagExists(m, "-sql") // -file
+	if len(file) > 0 {
+		output.Warningf("File flag not implemented")
+	}
+
+	cf := CFRequest{
+		url:    d1baseurl + "/" + id + "/raw",
+		method: POST,
+	}
+	// Const body
+	cf.body.HasBody = true
+	data := map[string]string{
+		"sql": sql,
+	}
+	json := toJson(data)
+	cf.body.Body = json
+	CreateRequest(&cf)
 
 }
 
@@ -129,5 +164,49 @@ func (d *D1) Raw(m flagsMap) {
 func (d *D1) Exec(m flagsMap) {
 
 	d.Raw(m)
+
+}
+
+// Specials
+func (d *D1) GetID(m flagsMap) {
+
+	// Values
+	exists, name := flagExists(m, "-name")
+	if !exists {
+		output.Error("No database name provided")
+		output.Exit("Please provide a database name using: cf-cli d1 get-id -name <name>")
+	}
+
+	cf := CFRequest{
+		url:    d1baseurl,
+		method: GET,
+	}
+
+	req, err := http.NewRequest(cf.method, cf.url, nil)
+	if err != nil {
+		output.Errorf("Error: %s", err)
+	}
+	res, err := c.Do(req)
+	if err != nil {
+		output.Errorf("Error: %s", err)
+		output.Exit("Exiting...")
+	}
+
+	body, err := io.ReadAll(res.Body)
+	defer res.Body.Close()
+
+	// Call the function to find the UUID
+	id, err := findD1DatabaseUUID(body, name)
+	if err != nil {
+		output.Errorf("Error: %s", err)
+		return
+	}
+	if id == "" {
+		output.Errorf("Error: Database not found")
+		return
+	}
+
+	output.Successf("🌟The Id for the DB: %s, is:  %s 🌟", name, id)
+	// Parse body to get id
 
 }
