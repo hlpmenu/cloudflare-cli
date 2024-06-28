@@ -1,11 +1,17 @@
 package cfapi
 
 import (
+	"go-debug/cmd/commands"
 	"go-debug/env"
 	"go-debug/output"
 	"io"
 	"net/http"
 )
+
+func loadD1Commands() {
+	// D1
+	Cmds.Add(*D1MainCommand)
+}
 
 type D1 struct {
 	Request CFRequest
@@ -22,7 +28,7 @@ func D1Commdand(c *CFCommand) {
 		output.Errorf("No account ID provided, \n Run 'cf_api setup' to set up your account ID, or run 'cf_api setup --config' to generate a config file\n")
 		output.Exit("Exiting...")
 	}
-	d1baseurl = cfbaseurl + "client/v4/accounts" + env.CLOUDFLARE_ACCOUNT_ID + "/d1/database"
+	d1baseurl = cfbaseurl + "client/v4/accounts/" + env.CLOUDFLARE_ACCOUNT_ID + "/d1/database"
 
 	d1 := D1{}
 	flags := c.Flags
@@ -40,6 +46,8 @@ func D1Commdand(c *CFCommand) {
 		d1.Raw(flags)
 	case "exec":
 		d1.Exec(flags)
+	case "get-id":
+		d1.GetID(flags)
 	default:
 		output.Error("Invalid command")
 		output.Exit("Exiting...")
@@ -84,8 +92,10 @@ func (d *D1) Delete(m flagsMap) {
 	// Values
 	exists, id := flagExists(m, "-id")
 	if !exists || len(id) < 1 {
-		output.Error("No database id provided")
-		output.Exit("Please provide a database id using: cf-cli d1 create -id <db_id>")
+
+		output.Error("No database name provided")
+		output.Exit("Please provide a database name using: cf-cli d1 create -name <name>")
+
 	}
 
 	cf := CFRequest{
@@ -209,4 +219,129 @@ func (d *D1) GetID(m flagsMap) {
 	output.Successf("🌟The Id for the DB: %s, is:  %s 🌟", name, id)
 	// Parse body to get id
 
+}
+
+/*
+
+	switch c.CMD {
+	case "list":
+		d1.List(flags)
+	case "create":
+		d1.Create(flags)
+	case "delete":
+		d1.Delete(flags)
+	case "query":
+		d1.Query(flags)
+	case "raw":
+		d1.Raw(flags)
+	case "exec":
+		d1.Exec(flags)
+	default:
+		output.Error("Invalid command")
+		output.Exit("Exiting...")
+	}
+*/
+
+var D1MainCommand = &commands.Command{
+	Name:        "d1",
+	Description: "Interact with your D1 databases",
+	SubCommands: []commands.SubCommand{
+		*D1ListCommand,
+		*D1CreateCommand,
+		*D1DeleteCommand,
+		*D1GetCommand,
+		*D1ExecCommand,
+	},
+	Run: func(m map[string]string) {
+
+	},
+}
+
+var D1ListCommand = &commands.SubCommand{
+	Name:        "list",
+	Description: "List all D1 databases",
+	Flags: []commands.Flag{
+		{
+			Name:     "-name",
+			HasValue: true,
+		},
+	},
+	Run: func(m map[string]string) {
+		D1Commdand(&CFCommand{CMD: "list", Flags: m})
+	},
+}
+
+var D1CreateCommand = &commands.SubCommand{
+	Name:        "create",
+	Description: "Create a new D1 database",
+	Flags: []commands.Flag{
+		{
+			Name:     "-name",
+			HasValue: true,
+		},
+	},
+	Run: func(m map[string]string) {
+		D1Commdand(&CFCommand{CMD: "create", Flags: m})
+	},
+}
+var D1DeleteCommand = &commands.SubCommand{
+	Name:        "delete",
+	Description: "Delete a D1 database",
+	Flags: []commands.Flag{
+		{
+			Name:     "-id",
+			HasValue: true,
+		},
+		// Add Id flag
+	},
+	Run: func(m map[string]string) {
+		D1Commdand(&CFCommand{CMD: "delete", Flags: m})
+	},
+}
+
+var D1GetCommand = &commands.SubCommand{
+	Name:        "get",
+	Description: "get a D1 database",
+	Flags: []commands.Flag{
+		{
+			Name:     "-id",
+			HasValue: true,
+		},
+		// Add Id flag
+	},
+	Run: func(m map[string]string) {
+		D1Commdand(&CFCommand{CMD: "get", Flags: m})
+	},
+}
+var D1ExecCommand = &commands.SubCommand{
+	Name:        "exec",
+	Description: "Exec a raw query on a D1 database",
+	Flags: []commands.Flag{
+		{
+			Name:     "-sql",
+			HasValue: true,
+		},
+		{
+			Name:     "-db",
+			HasValue: true,
+		},
+		// Add Id flag
+	},
+	Run: func(m map[string]string) {
+		D1Commdand(&CFCommand{CMD: "exec", Flags: m})
+	},
+}
+var D1GetIDCommand = &commands.SubCommand{
+	Name:        "get-id",
+	Description: "Exec a raw query on a D1 database",
+	Flags: []commands.Flag{
+		{
+			Name:     "-name",
+			HasValue: true,
+		},
+		// Add Id flag
+	},
+	Run: func(m map[string]string) {
+		D1Commdand(&CFCommand{CMD: "get-id", Flags: m})
+	},
 }

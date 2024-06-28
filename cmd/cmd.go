@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	cfapi "go-debug/cf_api"
 	"go-debug/cmd/commands"
 	"go-debug/cmd/interactive"
 	"go-debug/cmd/parse"
+	"go-debug/env"
 	"go-debug/output"
 	"log"
 )
@@ -13,6 +15,7 @@ import (
 var Cmds *commands.Commands
 
 func Entry() {
+	env.SetupEnv()
 	Cmds := commands.Cmds
 
 	Cmds.AvailableCommands = make(map[string]commands.Command)
@@ -24,6 +27,7 @@ func Entry() {
 	Cmds.Add(*example)
 	Cmds.Add(*printhelloworld)
 	Cmds.Add(*interactive.StartInteractive)
+	cfapi.InitCFApi()
 
 	parse.ParseArgs()
 
@@ -33,7 +37,7 @@ var printhelloworld = &commands.Command{
 	Name:        "printhelloworld",
 	Description: "Prints 'Hello, World!'",
 	Flags: []commands.Flag{
-		commands.Flag{
+		{
 			Name:     "-o",
 			Value:    "hello",
 			HasValue: true,

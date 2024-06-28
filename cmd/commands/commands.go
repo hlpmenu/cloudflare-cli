@@ -41,10 +41,26 @@ func (c *Commands) Add(cmd Command) {
 	c.AvailableCommands[cmd.Name] = cmd
 }
 
+// AddSubCommand adds a subcommand to the Command's SubCommands slice.
+func (c *Command) AddSubCommand(subCmd SubCommand) {
+	c.SubCommands = append(c.SubCommands, subCmd)
+}
+
 // Implementing Get method to retrieve a command by name
 func (c *Commands) Get(name string) (Command, bool) {
 	cmd, exists := c.AvailableCommands[name]
 	return cmd, exists
+}
+
+// Get the subcommand by name, returns a SubCommand struct and a boolean indicating if the subcommand exists.
+func (c *Command) GetSubCommand(name string) (SubCommand, bool) {
+	var subCmd SubCommand
+	for _, subCmd = range c.SubCommands {
+		if subCmd.Name == name {
+			return subCmd, true
+		}
+	}
+	return subCmd, false
 }
 
 // Usage returns a string describing how to use the command, including its name and description.

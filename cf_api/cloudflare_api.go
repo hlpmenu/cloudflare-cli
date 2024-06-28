@@ -128,6 +128,7 @@ func ConstRequest(cf *CFRequest) *http.Request {
 	if err != nil {
 		output.Errorf("Error: %s", err)
 	}
+	req.Header = hdrs
 
 	return req
 
@@ -150,7 +151,7 @@ func logresponse(res *http.Response) {
 	}
 	defer res.Body.Close()
 	bodyS := string(body)
-	if len(bodyS) > 1 {
+	if len(bodyS) < 1 {
 		output.Errorf("Error, Suspicious response: %s", bodyS)
 	}
 	status := res.Status

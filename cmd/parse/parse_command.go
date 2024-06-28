@@ -16,25 +16,16 @@ import (
 // CMD: cf-cli worker create
 
 type Command struct {
-	Name       string
-	Flags      []Flag
-	SubCommand SubCommand
-	Args       Args
-	CMD        commands.Command
+	Name         string
+	Flags        []Flag
+	SubCommand   commands.SubCommand
+	IsSubCommand bool
+	Args         Args
+	CMD          commands.Command
 }
 type Flag struct {
 	Name  string
 	Value string
-}
-type SubCommand struct {
-	Name  string
-	flags []Flag
-}
-
-func (c Command) CutLast() {
-	if len(c.Args) > 0 {
-		c.Args = c.Args[1:]
-	}
 }
 
 type Args []string
@@ -84,7 +75,8 @@ func ParseArgs() {
 			} else if arg == "-v" || arg == "--version" {
 				output.Info(global.Version)
 				return
-			} else if regexIsFlag(arg) {
+			}
+			if regexIsFlag(arg) {
 				f, isValid := cmd.GetFlag(arg)
 				if !isValid {
 					output.Errorf("Unknown flag: %s\n", arg)
@@ -100,7 +92,17 @@ func ParseArgs() {
 						args.CutLast()
 					}
 				}
-
+			} else {
+				// Check if the argument is a subcommand
+				subCmd, isValid := cmd.GetSubCommand(arg)
+				if isValid {
+					C.IsSubCommand = true
+					C.SubCommand = subCmd
+					args.CutLast() // Remove the subcommand from args for further processing
+				} else {
+					output.Errorf("Unknown command or argument: %s\n", arg)
+					return
+				}
 			}
 			if len(args) > 0 {
 				break
@@ -126,16 +128,21 @@ func executeCommand(C *Command) {
 
 	flags := createFlagMap(C.Flags)
 	if flags == nil { // Added to show you that the flags map is NOT nil.
-		output.Error("No flags provided")
-		return
+		output.Error("Error creating flags map")
+		output.Exit("Exiting...")
 	}
 
-	if C.CMD.Run == nil {
+	if C.IsSubCommand {
+		if C.SubCommand.Run == nil {
+			output.Error("Internal error: Subcommand has no run function")
+		}
+		C.SubCommand.Run(flags)
+	} else if C.CMD.Run != nil {
+		C.CMD.Run(flags)
+	} else {
 		output.Error("Internal error: Command has no run function")
-		return
+		output.Exit("Exiting...")
 	}
-
-	C.CMD.Run(flags)
 
 }
 
