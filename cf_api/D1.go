@@ -184,6 +184,10 @@ func (d *D1) Raw(m flagsMap) {
 		}
 	}
 
+	// Add a red color to the text in the printf
+	// Make the text red in the log.Printf() using ascii
+	log.Printf("\033[31mID: %s, SQL: %s\033[0m", id, sql)
+
 	log.Printf("ID: %s, SQL: %s", id, sql)
 
 	cf := CFRequest{
@@ -333,6 +337,7 @@ var D1GetCommand = &commands.SubCommand{
 		D1Commdand(&CFCommand{CMD: "get", Flags: m})
 	},
 }
+
 var D1ExecCommand = &commands.SubCommand{
 	Name:        "exec",
 	Description: "Exec a raw query on a D1 database",
