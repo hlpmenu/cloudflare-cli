@@ -9,6 +9,8 @@ import (
 	"go-debug/env"
 	"go-debug/output"
 	"log"
+	"os"
+	"strings"
 )
 
 // Define commands as a package-level variable.
@@ -16,6 +18,7 @@ var Cmds *commands.Commands
 
 func Entry() {
 	env.SetupEnv()
+	log.Printf("env: %v\n", env.DB_ID)
 	Cmds := commands.Cmds
 
 	Cmds.AvailableCommands = make(map[string]commands.Command)
@@ -27,6 +30,7 @@ func Entry() {
 	Cmds.Add(*example)
 	Cmds.Add(*printhelloworld)
 	Cmds.Add(*interactive.StartInteractive)
+	Cmds.Add(*printenvcommand)
 	cfapi.InitCFApi()
 
 	parse.ParseArgs()
@@ -68,4 +72,37 @@ func helloworld(m map[string]string) {
 	}
 
 	output.Successf("%s\n", txt)
+}
+
+var printenvcommand = &commands.Command{
+	Name:        "printenv",
+	Description: "Prints the environment variables",
+	Flags: []commands.Flag{
+		{
+			Name:     "-cf",
+			HasValue: false,
+		},
+	},
+	Run: printenv,
+}
+
+func printenv(m map[string]string) {
+	cfarray := []string{env.CLOUDFLARE_ACCOUNT_EMAIL, env.CLOUDFLARE_API_KEY, env.DB_ID, env.PAGES_ID, env.WORKERS_ID}
+
+	cfonly, _ := commands.FlagExists(m, "-cf")
+	if cfonly {
+		for _, v := range cfarray {
+			log.Printf("%s\n", v)
+		}
+		return
+	} else {
+		e := make(map[string]string)
+		env := os.Environ()
+		for _, i := range env {
+			kv := strings.Split(i, "=")
+			e[kv[0]] = kv[1]
+			log.Printf("%s: %s\n", kv[0], kv[1])
+		}
+	}
+
 }

@@ -68,7 +68,9 @@ func ParseArgs() {
 		args.CutLast()
 
 		log.Print("args: ", args)
+		loopCount := 0
 		for _, arg := range args {
+			loopCount++
 			if arg == "-h" || arg == "--help" {
 				output.Info(cmd.Usage())
 				return
@@ -77,7 +79,17 @@ func ParseArgs() {
 				return
 			}
 			if regexIsFlag(arg) {
-				f, isValid := cmd.GetFlag(arg)
+				log.Printf("arg in if: %s\n", arg)
+				var (
+					isValid bool
+					f       commands.Flag
+				)
+				if !C.IsSubCommand {
+					f, isValid = cmd.GetFlag(arg)
+				} else if C.IsSubCommand {
+					f, isValid = C.SubCommand.GetFlag(arg)
+				}
+				log.Printf("f: %v\n, %v, %v", f, isValid, arg)
 				if !isValid {
 					output.Errorf("Unknown flag: %s\n", arg)
 					return
@@ -93,6 +105,8 @@ func ParseArgs() {
 					}
 				}
 			} else {
+				log.Printf("arg in else: %s\n", arg)
+				log.Printf("args in else: %v\n", args)
 				// Check if the argument is a subcommand
 				subCmd, isValid := cmd.GetSubCommand(arg)
 				if isValid {
@@ -104,11 +118,15 @@ func ParseArgs() {
 					return
 				}
 			}
-			if len(args) > 0 {
+			if len(args) < 1 {
+				log.Printf("Break: %s\n", args)
 				break
 			}
-		}
 
+		}
+		log.Printf("count: %v\n", loopCount)
+
+		log.Printf(command)
 		C.CMD = cmd
 		executeCommand(C)
 

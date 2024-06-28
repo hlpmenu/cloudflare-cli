@@ -25,6 +25,19 @@ install.sh~
 install.fish
 install.zsh
 
+# temp dirs and files
+tmp
+temp
+.tmp
+*.tmp
+*.temp
+
+# Lazyfile
+*.lazy
+lazy
+lazy.env
+
+
 # Markdown notes
 *.md
 *.markdown

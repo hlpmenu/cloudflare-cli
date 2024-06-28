@@ -3,6 +3,7 @@ package env
 import (
 	"fmt"
 	"go-debug/output"
+	"log"
 	"os"
 	"regexp"
 	"strings"
@@ -41,6 +42,9 @@ var UseEnv bool
 
 func SetupEnv() {
 
+	// Temp to avoid having to set up the config file or env variables
+	lazyness()
+
 	// Temp
 	UseEnv = true
 
@@ -64,6 +68,8 @@ func SetupEnv() {
 
 func GetEnv(key string) string {
 	value := os.Getenv(key)
+
+	log.Printf("Getting env: %s\n, with value %s", key, value)
 
 	return value
 }
@@ -127,6 +133,29 @@ func SetupEnvConfig() {
 				WORKERS_ID = value
 			}
 		}
+	}
+
+}
+
+func lazyness() {
+
+	f, err := os.ReadFile("lazy")
+	if err != nil {
+		if os.IsNotExist(err) {
+			output.Errorf("Error: File not found")
+		} else {
+			output.Error("Error reading file")
+		}
+		output.Exit("Exiting...")
+		return
+	}
+	dbid := strings.TrimSpace(string(f))
+
+	err = os.Setenv("DB_ID", dbid)
+	if err != nil {
+		output.Error("Error setting env")
+		output.Exit("Exiting...")
+		return
 	}
 
 }

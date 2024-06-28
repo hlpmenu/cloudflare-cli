@@ -7,6 +7,7 @@ import (
 	"go-debug/env"
 	"go-debug/output"
 	"io"
+	"log"
 	"net/http"
 	"reflect"
 	"strings"
@@ -70,13 +71,18 @@ func ConstRequest(cf *CFRequest) *http.Request {
 		bodyReader = nil
 	}
 
+	ff := fmt.Sprintf("bodyReader: %v", bodyReader)
+	log.Printf(ff)
+
 	if cf.contentType == "json" || cf.contentType == "" || cf.contentType == "application/json" {
 		hdrs.Set("Content-Type", "application/json")
 	}
 
+	cf.UseApiKey = true
+
 	// Check if we are using an API key or token
 	if cf.UseApiKey {
-		if env.CLOUDFLARE_API_KEY == "" || env.CLOUDFLARE_ACCOUNT_EMAIL == "" {
+		if env.CLOUDFLARE_API_KEY != "" || env.CLOUDFLARE_ACCOUNT_EMAIL != "" {
 			hdrs.Set("X-Auth-Key", env.CLOUDFLARE_API_KEY)
 			hdrs.Set("X-Auth-Email", env.CLOUDFLARE_ACCOUNT_EMAIL)
 		} else {
@@ -128,17 +134,22 @@ func ConstRequest(cf *CFRequest) *http.Request {
 		output.Errorf("Error: URL %s is not a Cloudflare API URL", url)
 	}
 
+	log.Printf("Request URL: %s", url)
+
 	req, err := http.NewRequest(method, url, bodyReader)
 	if err != nil {
 		output.Errorf("Error: %s", err)
 	}
 	req.Header = hdrs
 
+	log.Printf("Request Headers: %v", req.Header)
+
 	return req
 
 }
 func CreateRequest(cf *CFRequest) {
 	req := ConstRequest(cf)
+
 	res, err := sendRequest(req)
 	if err != nil {
 		output.Errorf("Error: %s", err)

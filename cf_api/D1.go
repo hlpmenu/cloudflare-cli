@@ -11,11 +11,16 @@
 package cfapi
 
 import (
+	"encoding/json"
+	"fmt"
 	"go-debug/cmd/commands"
 	"go-debug/env"
 	"go-debug/output"
 	"io"
+	"log"
 	"net/http"
+	"os"
+	"strings"
 )
 
 func loadD1Commands() {
@@ -143,36 +148,62 @@ func (d *D1) Query(m flagsMap) {
 }
 
 func (d *D1) Raw(m flagsMap) {
+
+	log.Printf("Flags: %v", m)
+	for k, v := range m {
+		log.Printf("Key: %s, Value: %s", k, v)
+	}
 	// Values
-	exists, id := flagExists(m, "-db")
-	if !exists || len(id) < 1 {
-		output.Error("No database id provided")
-		output.Exit("Please provide a database id using: cf-cli d1 create -db <db_id>")
+
+	var id, sql string
+	var exists bool
+	fmt.Println(env.DB_ID)
+	if env.DB_ID == "" {
+
+		exists, id = flagExists(m, "-db")
+		if !exists || len(id) < 1 {
+			output.Error("No database id provided")
+			output.Exit("Please provide a database id using: cf-cli d1 create -db <db_id>")
+		}
+	} else {
+		id = env.DB_ID
 	}
 
-	exists, sql := flagExists(m, "-sql")
+	exists, sql = flagExists(m, "-sql")
 	if !exists || len(sql) < 1 {
-		output.Error("No SQL query provided")
-		output.Exit("Please provide a SQL query using: cf-cli d1 create -sql 'SELECT * FROM ...'")
+
+		fileFlagExist, file := flagExists(m, "-file") // -file
+		if len(file) < 1 || fileFlagExist {
+			output.Error("Invalid file provided")
+		} else if fileFlagExist {
+			sql = parseSqlFile(file)
+		} else {
+			output.Error("No SQL query provided")
+			output.Exit("Please provide a SQL query using: cf-cli d1 create -sql 'SELECT * FROM ...' \n or use the -file flag to provide a file with the SQL query")
+
+		}
 	}
 
-	// for using files, use -file flag
-	// NOT IMPLEMENTED
-	_, file := flagExists(m, "-sql") // -file
-	if len(file) > 0 {
-		output.Warningf("File flag not implemented")
-	}
+	log.Printf("ID: %s, SQL: %s", id, sql)
 
 	cf := CFRequest{
-		url:    d1baseurl + "/" + id + "/raw",
+		url:    d1baseurl + "/" + env.DB_ID + "/raw",
 		method: POST,
 	}
 	// Const body
 	cf.body.HasBody = true
+	log.Printf("sql: %s", sql)
 	data := map[string]string{
 		"sql": sql,
 	}
-	json := toJson(data)
+
+	json, err := json.Marshal(data)
+	if err != nil {
+		output.Errorf("Error: %s", err)
+	} else if len(json) < 1 {
+		output.Error("Error: EMpty json body")
+		output.Exit("Exiting...")
+	}
 	cf.body.Body = json
 	CreateRequest(&cf)
 
@@ -314,9 +345,14 @@ var D1ExecCommand = &commands.SubCommand{
 			Name:     "-db",
 			HasValue: true,
 		},
+		{
+			Name:     "-file",
+			HasValue: true,
+		},
 		// Add Id flag
 	},
 	Run: func(m map[string]string) {
+		log.Printf("Flags: %v", m)
 		D1Commdand(&CFCommand{CMD: "exec", Flags: m})
 	},
 }
@@ -333,4 +369,26 @@ var D1GetIDCommand = &commands.SubCommand{
 	Run: func(m map[string]string) {
 		D1Commdand(&CFCommand{CMD: "get-id", Flags: m})
 	},
+}
+
+func parseSqlFile(path string) string {
+
+	f, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			output.Errorf("Error: File not found")
+		} else {
+			output.Error("Error reading file")
+		}
+		output.Exit("Exiting...")
+		return ""
+	}
+	query := strings.TrimSpace(string(f))
+
+	if len(query) < 6 {
+		output.Error("Invalid query")
+		output.Exit("Please check your query and try again")
+	}
+
+	return query
 }

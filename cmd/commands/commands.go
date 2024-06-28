@@ -1,5 +1,7 @@
 package commands
 
+import "log"
+
 // Command represents a single command, including its name, description, associated flags, and subcommands.
 type Command struct {
 	Name        string
@@ -81,9 +83,25 @@ func (flag Flag) Usage() string {
 // GetFlag returns a Flag struct and a boolean indicating if the flag exists.
 func (cmd *Command) GetFlag(name string) (Flag, bool) {
 	for _, flag := range cmd.Flags {
+		log.Printf("flag: %v\n", flag.Name)
 		if flag.Name == name {
 			return flag, true
 		}
 	}
 	return Flag{}, false
+}
+
+// GetFlag returns a Flag struct and a boolean indicating if the flag exists.
+func (cmd *SubCommand) GetFlag(name string) (Flag, bool) {
+	for _, flag := range cmd.Flags {
+		log.Printf("flag: %v\n", flag.Name)
+		if flag.Name == name {
+			return flag, true
+		}
+	}
+	return Flag{}, false
+}
+func FlagExists(m map[string]string, key string) (bool, string) {
+	value, exists := m[key]
+	return exists, value
 }
