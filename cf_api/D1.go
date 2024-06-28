@@ -1,3 +1,13 @@
+// Description: D1 API commands
+// Commands
+// - list
+// - create
+// - delete
+// - query
+// - raw
+// - exec
+// - get-id
+
 package cfapi
 
 import (
@@ -16,8 +26,6 @@ func loadD1Commands() {
 type D1 struct {
 	Request CFRequest
 }
-
-type flagsMap map[string]string
 
 // D1 Api url base
 var d1baseurl string
@@ -221,26 +229,7 @@ func (d *D1) GetID(m flagsMap) {
 
 }
 
-/*
-
-	switch c.CMD {
-	case "list":
-		d1.List(flags)
-	case "create":
-		d1.Create(flags)
-	case "delete":
-		d1.Delete(flags)
-	case "query":
-		d1.Query(flags)
-	case "raw":
-		d1.Raw(flags)
-	case "exec":
-		d1.Exec(flags)
-	default:
-		output.Error("Invalid command")
-		output.Exit("Exiting...")
-	}
-*/
+// Commands for D1
 
 var D1MainCommand = &commands.Command{
 	Name:        "d1",

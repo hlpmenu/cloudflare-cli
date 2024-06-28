@@ -3,12 +3,16 @@ package cfapi
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"go-debug/env"
 	"go-debug/output"
 	"io"
 	"net/http"
+	"reflect"
 	"strings"
 )
+
+type flagsMap map[string]string
 
 var c = http.Client{}
 
@@ -171,6 +175,24 @@ func toJson(m map[string]string) []byte {
 		output.Errorf("Error: %s", err)
 	}
 	return json
+}
+func toJsonReflect(v interface{}) ([]byte, error) {
+	val := reflect.ValueOf(v)
+	if val.Kind() == reflect.Struct {
+		t := val.Type()
+		data := map[string]interface{}{}
+
+		for i := 0; i < val.NumField(); i++ {
+			field := t.Field(i)
+			jsonTag := field.Tag.Get("json")
+			if jsonTag != "" && jsonTag != "-" {
+				data[jsonTag] = val.Field(i).Interface()
+			}
+		}
+
+		return json.Marshal(data)
+	}
+	return nil, fmt.Errorf("input is not a struct")
 }
 
 // Exist in map
