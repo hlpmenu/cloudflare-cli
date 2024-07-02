@@ -29,7 +29,7 @@ func (cli *CLI) Run() {
 				return
 			default:
 				// Keep the CLI alive, waiting for explicit commands or actions
-				// This is where you'd integrate more complex event handling if needed
+				// CLI will be terminated on sigint
 			}
 		}
 	}()

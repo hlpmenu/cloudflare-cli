@@ -6,10 +6,14 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"runtime"
 	"strings"
 )
 
 var allOptions = []string{"CLOUDFLARE_ACCOUNT_EMAIL", "CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_API_KEY", "DB_NAME", "DB_ID", "PAGES_NAME", "PAGES_ID", "WORKERS_NAME", "WORKERS_ID"}
+
+// Remove, used to avoid rewriting the usage of non capitalized var
+var AllCFVars *[]string
 
 // Main CF API Details
 var (
@@ -43,6 +47,7 @@ var UseEnv bool
 func SetupEnv() {
 
 	// Temp to avoid having to set up the config file or env variables
+	AllCFVars = &allOptions
 	lazyness()
 
 	// Temp
@@ -158,4 +163,16 @@ func lazyness() {
 		return
 	}
 
+}
+
+type OS string
+
+func (o OS) String() string {
+	return string(o)
+}
+
+func GetOS() OS {
+	rt := strings.ToLower(runtime.GOOS)
+	o := OS(rt)
+	return o
 }

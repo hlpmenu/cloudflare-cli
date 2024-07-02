@@ -7,6 +7,7 @@ import (
 	"go-debug/cmd/interactive"
 	"go-debug/cmd/parse"
 	"go-debug/env"
+	setenv "go-debug/env/set_env"
 	"go-debug/output"
 	"log"
 	"os"
@@ -32,6 +33,8 @@ func Entry() {
 	Cmds.Add(*interactive.StartInteractive)
 	Cmds.Add(*printenvcommand)
 	cfapi.InitCFApi()
+	Cmds.Add(*setenv.ENVCOMMAND)
+	setenv.ENVCOMMAND.AddSubCommand(*setenv.SETENVCOMMAND)
 
 	parse.ParseArgs()
 

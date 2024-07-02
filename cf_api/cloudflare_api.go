@@ -78,7 +78,7 @@ func ConstRequest(cf *CFRequest) *http.Request {
 		hdrs.Set("Content-Type", "application/json")
 	}
 
-	cf.UseApiKey = true
+	cf.UseApiKey = false
 
 	// Check if we are using an API key or token
 	if cf.UseApiKey {

@@ -11,7 +11,6 @@
 package cfapi
 
 import (
-	"encoding/json"
 	"fmt"
 	"go-debug/cmd/commands"
 	"go-debug/env"
@@ -19,8 +18,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
-	"strings"
 )
 
 func loadD1Commands() {
@@ -149,14 +146,17 @@ func (d *D1) Query(m flagsMap) {
 
 func (d *D1) Raw(m flagsMap) {
 
+	var (
+		sql, id string
+		exists  bool
+	)
+
 	log.Printf("Flags: %v", m)
 	for k, v := range m {
 		log.Printf("Key: %s, Value: %s", k, v)
 	}
-	// Values
 
-	var id, sql string
-	var exists bool
+	// Values
 	fmt.Println(env.DB_ID)
 	if env.DB_ID == "" {
 
@@ -173,9 +173,12 @@ func (d *D1) Raw(m flagsMap) {
 	if !exists || len(sql) < 1 {
 
 		fileFlagExist, file := flagExists(m, "-file") // -file
-		if len(file) < 1 || fileFlagExist {
+		if len(file) < 1 && fileFlagExist {
+			log.Printf("File: %s", len(file))
+			output.Errorf("Flagexist %s", fileFlagExist)
 			output.Error("Invalid file provided")
 		} else if fileFlagExist {
+			log.Printf("File: %s", file)
 			sql = parseSqlFile(file)
 		} else {
 			output.Error("No SQL query provided")
@@ -184,31 +187,45 @@ func (d *D1) Raw(m flagsMap) {
 		}
 	}
 
-	// Add a red color to the text in the printf
-	// Make the text red in the log.Printf() using ascii
 	log.Printf("\033[31mID: %s, SQL: %s\033[0m", id, sql)
 
 	log.Printf("ID: %s, SQL: %s", id, sql)
 
+	url := fmt.Sprintf("%s/%s/raw", d1baseurl, id)
+
 	cf := CFRequest{
-		url:    d1baseurl + "/" + env.DB_ID + "/raw",
+		url:    url,
 		method: POST,
 	}
 	// Const body
 	cf.body.HasBody = true
 	log.Printf("sql: %s", sql)
-	data := map[string]string{
-		"sql": sql,
-	}
+	// data := map[string]string{
+	// 	"sql": sql,
+	// }
 
-	json, err := json.Marshal(data)
-	if err != nil {
-		output.Errorf("Error: %s", err)
-	} else if len(json) < 1 {
-		output.Error("Error: EMpty json body")
-		output.Exit("Exiting...")
-	}
-	cf.body.Body = json
+	json := []byte(fmt.Sprintf(`{"sql": "%s"}`, sql))
+
+	// Earlier tests had this:
+	/*
+		Method 1:
+			// Const body
+			cf.body.HasBody = true
+			data := map[string]string{
+				"sql": sql,
+			}
+			json := toJson(data)
+		Method 2:
+
+			query := map[string]string{
+				"sql": "SELECT email FROM users",
+			}
+			body, _ := json.Marshal(query)
+
+
+	*/
+
+	cf.body.Body = []byte(json)
 	CreateRequest(&cf)
 
 }
@@ -220,7 +237,10 @@ func (d *D1) Exec(m flagsMap) {
 
 }
 
-// Specials
+// Convinence
+
+// A convenience function that returns the ID of a D1 db by its name.
+// Removes the annoyance of having to run wrangler d1 list to find the ID
 func (d *D1) GetID(m flagsMap) {
 
 	// Values
@@ -374,26 +394,4 @@ var D1GetIDCommand = &commands.SubCommand{
 	Run: func(m map[string]string) {
 		D1Commdand(&CFCommand{CMD: "get-id", Flags: m})
 	},
-}
-
-func parseSqlFile(path string) string {
-
-	f, err := os.ReadFile(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			output.Errorf("Error: File not found")
-		} else {
-			output.Error("Error reading file")
-		}
-		output.Exit("Exiting...")
-		return ""
-	}
-	query := strings.TrimSpace(string(f))
-
-	if len(query) < 6 {
-		output.Error("Invalid query")
-		output.Exit("Please check your query and try again")
-	}
-
-	return query
 }
