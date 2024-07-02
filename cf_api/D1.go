@@ -203,7 +203,12 @@ func (d *D1) Raw(m flagsMap) {
 	// data := map[string]string{
 	// 	"sql": sql,
 	// }
-
+	sqlIsValid := IsValidSqlite(sql)
+	if !sqlIsValid {
+		output.Error("Invalid SQL query")
+	} else {
+		output.Success("SQL query is valid!")
+	}
 	json := []byte(fmt.Sprintf(`{"sql": "%s"}`, sql))
 
 	// Earlier tests had this:

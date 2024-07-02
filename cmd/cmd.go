@@ -19,13 +19,10 @@ var Cmds *commands.Commands
 
 func Entry() {
 	env.SetupEnv()
-	log.Printf("env: %v\n", env.DB_ID)
 	Cmds := commands.Cmds
 
 	Cmds.AvailableCommands = make(map[string]commands.Command)
 	Cmds.Get("printhelloworld")
-	log.Printf("%v\n", Cmds.AvailableCommands)
-	log.Printf("log %v\n", Cmds.AvailableCommands["printhelloworld"])
 
 	example := commands.ExampleCommand()
 	Cmds.Add(*example)
