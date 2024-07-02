@@ -29,13 +29,18 @@ var ENVCOMMAND = &commands.Command{
 		// Add Id flag
 	},
 	Run: func(m map[string]string) {
-		ENV_ENTRYPOINT(&ENV_COMMAND{CMD: "create", Flags: m})
+		ENV_ENTRYPOINT(&ENV_COMMAND{CMD: "env", Flags: m})
 	},
 }
 var SETENVCOMMAND = &commands.SubCommand{
 	Name:        "set",
 	Description: "Set environment variables",
-	Flags:       []commands.Flag{},
+	Flags: []commands.Flag{
+		{
+			Name:     "-set",
+			HasValue: true,
+		},
+	},
 	Run: func(m map[string]string) {
 		ENV_ENTRYPOINT(&ENV_COMMAND{CMD: "set", Flags: m})
 	},
